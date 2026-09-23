@@ -5,7 +5,7 @@ class Qemu < Formula
 
   version "1.0.27"
   url "https://github.com/mikeeq/homebrew-qemu-virgl-kosmickrisp/archive/refs/tags/v1.0.27.tar.gz"
-  sha256 "ba26e5620025c573874393fa415806d2449c8d3f4b34ce5322aae55e6ac9eba0"
+  sha256 "a5a8c09694ac5118a6e9068e4fa27502a41ecefc4dc0a0dd6665d111e06cfde2"
   head "https://gitlab.com/qemu-project/qemu.git", branch: "master"
 
   bottle do
@@ -47,11 +47,12 @@ class Qemu < Formula
     # Install pyyaml for meson
     system "python3", "-m", "pip", "install", "--break-system-packages", "pyyaml"
 
-    # Download upstream QEMU stable release. The downstream patches are rebased
-    # against this exact tag (see docs/PATCHES.md); do not switch to master.
-    qemu_version = "v11.1.1"
-    upstream_url = "https://gitlab.com/qemu-project/qemu/-/archive/#{qemu_version}/qemu-#{qemu_version}.tar.gz"
-    ohai "Downloading upstream QEMU #{qemu_version} from #{upstream_url}"
+    # Pin to the exact upstream QEMU commit the downstream patches were authored
+    # against (startergo's last known-good build commit). No release tag applies
+    # the patches cleanly - this commit sits between v10.2 and v11.0 on master.
+    upstream_commit = "cf3e71d8fc8ba681266759bb6cb2e45a45983e3e"
+    upstream_url = "https://gitlab.com/qemu-project/qemu/-/archive/#{upstream_commit}/qemu-#{upstream_commit}.tar.gz"
+    ohai "Downloading upstream QEMU #{upstream_commit} from #{upstream_url}"
     system "curl", "-L", upstream_url, "-o", "qemu.tar.gz"
     system "tar", "-xzf", "qemu.tar.gz", "--strip-components=1"
 
