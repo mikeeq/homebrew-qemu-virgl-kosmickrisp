@@ -290,6 +290,17 @@ jobs:
         run: |
           set -x
           TAP_DIR="$(brew --repository)/Library/Taps/${{ github.repository_owner }}/homebrew-qemu-virgl-kosmickrisp"
+          
+          brew tap startergo/virglrenderer
+          brew tap startergo/angle
+          brew tap startergo/gn
+          brew tap startergo/libepoxy
+
+          brew trust startergo/virglrenderer
+          brew trust startergo/angle
+          brew trust startergo/gn
+          brew trust startergo/libepoxy
+          
           mkdir -p "$TAP_DIR/Formula"
 
           CURRENT_DIR="$(pwd)"
