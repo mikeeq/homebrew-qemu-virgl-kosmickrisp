@@ -120,7 +120,7 @@ jobs:
 
       - name: Set up Git
         if: steps.check.outputs.should_run == 'true'
-        uses: Homebrew/actions/git-user-config@master
+        uses: Homebrew/actions/git-user-config@2026.09.21.1
         with:
           username: "${{ github.repository_owner }}"
 
@@ -180,10 +180,10 @@ jobs:
       QEMU_COMMIT: ${{ needs.determine-version.outputs.qemu_commit }}
     steps:
       - name: Set up Homebrew
-        uses: Homebrew/actions/setup-homebrew@master
+        uses: Homebrew/actions/setup-homebrew@2026.09.21.1
 
       - name: Set up Git
-        uses: Homebrew/actions/git-user-config@master
+        uses: Homebrew/actions/git-user-config@2026.09.21.1
         with:
           username: "${{ github.repository_owner }}"
 
