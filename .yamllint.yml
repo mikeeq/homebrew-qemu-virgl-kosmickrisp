@@ -1,0 +1,14 @@
+# yamllint config tuned for GitHub Actions workflows.
+extends: default
+
+rules:
+  line-length: disable
+  document-start: disable
+  # GitHub Actions uses `on:` which yamllint's truthy rule would flag.
+  truthy:
+    check-keys: false
+  comments:
+    min-spaces-from-content: 1
+  indentation:
+    spaces: 2
+    indent-sequences: consistent

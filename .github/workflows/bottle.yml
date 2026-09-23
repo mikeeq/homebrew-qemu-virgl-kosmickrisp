@@ -122,7 +122,7 @@ jobs:
         if: steps.check.outputs.should_run == 'true'
         uses: Homebrew/actions/git-user-config@master
         with:
-          username: "startergo"
+          username: "${{ github.repository_owner }}"
 
       - name: Update tag and calculate new sha256
         if: steps.check.outputs.should_run == 'true'
@@ -140,7 +140,7 @@ jobs:
           sleep 5
 
           # Download the updated tarball and calculate its sha256
-          TARBALL_URL="https://github.com/startergo/homebrew-qemu-virgl-kosmickrisp/archive/refs/tags/v${VERSION}.tar.gz"
+          TARBALL_URL="https://github.com/${{ github.repository }}/archive/refs/tags/v${VERSION}.tar.gz"
           echo "Downloading tarball from: $TARBALL_URL"
           curl -L -o "qemu-${VERSION}.tar.gz" "$TARBALL_URL"
 
@@ -185,7 +185,7 @@ jobs:
       - name: Set up Git
         uses: Homebrew/actions/git-user-config@master
         with:
-          username: "startergo"
+          username: "${{ github.repository_owner }}"
 
       - name: Check upstream scheduled workflows completed (scheduled run only)
         if: github.event_name == 'schedule'
@@ -243,12 +243,12 @@ jobs:
           # This ensures version and URL are in sync for correct bottle filename
           awk -v new_version="$VERSION" -v commit="$COMMIT" '
             BEGIN { inserted = 0 }
-            /^  url "https:\/\/github.com\/startergo\/homebrew-qemu-virgl-kosmickrisp\/archive\/refs\/tags\// {
+            /^  url "https:\/\/github.com\/${{ github.repository_owner }}\/homebrew-qemu-virgl-kosmickrisp\/archive\/refs\/tags\// {
               if (!inserted) {
                 print "  version \"" new_version "\""
                 inserted = 1
               }
-              print "  url \"https://github.com/startergo/homebrew-qemu-virgl-kosmickrisp/archive/" commit ".tar.gz\""
+              print "  url \"https://github.com/${{ github.repository }}/archive/" commit ".tar.gz\""
               next
             }
             { print }
@@ -260,7 +260,7 @@ jobs:
 
           # Download commit tarball and calculate its sha256
           # This is needed because the commit tarball has different content than the tag tarball
-          TARBALL_URL="https://github.com/startergo/homebrew-qemu-virgl-kosmickrisp/archive/${COMMIT}.tar.gz"
+          TARBALL_URL="https://github.com/${{ github.repository }}/archive/${COMMIT}.tar.gz"
           echo "=== Downloading commit tarball to calculate sha256 ==="
           echo "URL: $TARBALL_URL"
           curl -L -o "commit.tar.gz" "$TARBALL_URL"
@@ -289,7 +289,7 @@ jobs:
       - name: Build bottle
         run: |
           set -x
-          TAP_DIR="$(brew --repository)/Library/Taps/startergo/homebrew-qemu-virgl-kosmickrisp"
+          TAP_DIR="$(brew --repository)/Library/Taps/${{ github.repository_owner }}/homebrew-qemu-virgl-kosmickrisp"
           mkdir -p "$TAP_DIR/Formula"
 
           CURRENT_DIR="$(pwd)"
@@ -314,11 +314,11 @@ jobs:
           brew uninstall qemu --force 2>/dev/null || true
 
           # Build bottle (dependencies auto-install via formula depends_on)
-          brew install --build-bottle startergo/qemu-virgl-kosmickrisp/qemu
+          brew install --build-bottle ${{ github.repository_owner }}/qemu-virgl-kosmickrisp/qemu
           brew link --overwrite qemu || true
 
           # Create bottle
-          brew bottle --json --root-url="https://github.com/startergo/homebrew-qemu-virgl-kosmickrisp/releases/download/v${VERSION}" --force-core-tap "$TAP_DIR/Formula/qemu.rb"
+          brew bottle --json --root-url="https://github.com/${{ github.repository }}/releases/download/v${VERSION}" --force-core-tap "$TAP_DIR/Formula/qemu.rb"
 
           # Save formula before merge
           cp Formula/qemu.rb Formula/qemu.rb.before-merge
@@ -370,13 +370,13 @@ jobs:
               added_version=1
               next
             }
-            /^  url "https:\/\/github.com\/startergo\/homebrew-qemu-virgl-kosmickrisp\/archive\// {
+            /^  url "https:\/\/github.com\/${{ github.repository_owner }}\/homebrew-qemu-virgl-kosmickrisp\/archive\// {
               if (!added_version) {
                 print "  version \"" version "\""
                 printed_version=1
                 added_version=1
               }
-              print "  url \"https://github.com/startergo/homebrew-qemu-virgl-kosmickrisp/archive/refs/tags/v" version ".tar.gz\""
+              print "  url \"https://github.com/${{ github.repository }}/archive/refs/tags/v" version ".tar.gz\""
               next
             }
             { print }
@@ -413,7 +413,7 @@ jobs:
       - name: Update formula with tag tarball sha256
         run: |
           VERSION="${{ needs.determine-version.outputs.version }}"
-          TARBALL_URL="https://github.com/startergo/homebrew-qemu-virgl-kosmickrisp/archive/refs/tags/v${VERSION}.tar.gz"
+          TARBALL_URL="https://github.com/${{ github.repository }}/archive/refs/tags/v${VERSION}.tar.gz"
           echo "Downloading tag tarball to calculate sha256: $TARBALL_URL"
           curl -L -o "tag-tarball.tar.gz" "$TARBALL_URL"
           TAG_SHA256=$(shasum -a 256 tag-tarball.tar.gz | awk '{print $1}')

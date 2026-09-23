@@ -4,12 +4,12 @@ class Qemu < Formula
   license "GPL-2.0-or-later"
 
   version "1.0.27"
-  url "https://github.com/startergo/homebrew-qemu-virgl-kosmickrisp/archive/refs/tags/v1.0.27.tar.gz"
+  url "https://github.com/mikeeq/homebrew-qemu-virgl-kosmickrisp/archive/refs/tags/v1.0.27.tar.gz"
   sha256 "3696476c21ad644ac3f5d30d968096b596649f4970f4031ffa49f1c551eaf990"
   head "https://gitlab.com/qemu-project/qemu.git", branch: "master"
 
   bottle do
-    root_url "https://github.com/startergo/homebrew-qemu-virgl-kosmickrisp/releases/download/v1.0.27"
+    root_url "https://github.com/mikeeq/homebrew-qemu-virgl-kosmickrisp/releases/download/v1.0.27"
     sha256 arm64_sequoia: "a2eaeed6f7b52661436052b413f596785c5e14e2e1b65cd5509713fcfc164566"
   end
 
@@ -30,6 +30,7 @@ class Qemu < Formula
   depends_on "gettext"
   depends_on "jpeg-turbo"
   depends_on "libpng"
+  depends_on "libslirp" # rootless user-mode (-netdev user) networking
   depends_on "libssh"
   depends_on "libusb"
   depends_on "lzo"
@@ -111,11 +112,11 @@ class Qemu < Formula
     ln_sf "libvulkan.1.4.335.dylib", "#{lib}/libvulkan.1.dylib"
     ln_sf "libvulkan.1.dylib", "#{lib}/libvulkan.dylib"
 
-    # Get dependency paths for GPU acceleration   
+    # Get dependency paths for GPU acceleration
     angle = Formula["startergo/angle/angle"]
     libepoxy = Formula["startergo/libepoxy/libepoxy"]
-    virglrenderer = Formula["startergo/virglrenderer/virglrenderer"]    
-    
+    virglrenderer = Formula["startergo/virglrenderer/virglrenderer"]
+
     angle_pc_path = "#{angle.lib}/pkgconfig"
     libepoxy_pc_path = "#{libepoxy.lib}/pkgconfig"
     virglrenderer_pc_path = "#{virglrenderer.lib}/pkgconfig"
@@ -131,6 +132,7 @@ class Qemu < Formula
       --enable-virglrenderer
       --enable-opengl
       --enable-cocoa
+      --enable-slirp
       --disable-gtk
       --disable-guest-agent
       --disable-guest-agent-msi
@@ -144,7 +146,7 @@ class Qemu < Formula
 
     # Add smbd path
     args << "--smbd=#{HOMEBREW_PREFIX}/sbin/samba-dot-org-smbd"
-    
+
     # Only build specific targets: aarch64, x86_64, and i386
     args << "--target-list=aarch64-softmmu,x86_64-softmmu,i386-softmmu"
 

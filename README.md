@@ -1,8 +1,10 @@
 # homebrew-qemu-virgl-kosmickrisp
 
-[![Build Status](https://img.shields.io/github/actions/workflow/status/startergo/homebrew-qemu-virgl-kosmickrisp/bottle.yml?branch=master&label=bottle%20build&logo=github&style=flat-square)](https://github.com/startergo/homebrew-qemu-virgl-kosmickrisp/actions/workflows/bottle.yml)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/mikeeq/homebrew-qemu-virgl-kosmickrisp/bottle.yml?branch=master&label=bottle%20build&logo=github&style=flat-square)](https://github.com/mikeeq/homebrew-qemu-virgl-kosmickrisp/actions/workflows/bottle.yml)
 
 Homebrew tap for [QEMU](https://www.qemu.org/) - A generic and open source machine emulator and virtualizer, built for macOS with virglrenderer, ANGLE, and KosmicKrisp support for GPU acceleration.
+
+> Fork of [startergo/homebrew-qemu-virgl-kosmickrisp](https://github.com/startergo/homebrew-qemu-virgl-kosmickrisp) that additionally builds QEMU with **libslirp** so rootless user-mode networking (`-netdev user`) is available. Bottles are published to this fork's releases; the GPU dependency taps (`angle`, `libepoxy`, `virglrenderer`) are reused from `startergo`.
 
 ## What is QEMU?
 
@@ -14,10 +16,10 @@ QEMU is a free and open-source emulator and virtualizer that can perform hardwar
 
 ```bash
 # Tap the repository
-brew tap startergo/qemu-virgl-kosmickrisp
+brew tap mikeeq/qemu-virgl-kosmickrisp
 
 # Install qemu (downloads pre-built bottle)
-brew install startergo/qemu-virgl-kosmickrisp/qemu
+brew install mikeeq/qemu-virgl-kosmickrisp/qemu
 ```
 
 ### From Source
@@ -26,13 +28,13 @@ Build from source if you need to modify the formula, apply custom patches, or th
 
 ```bash
 # Tap the repository
-brew tap startergo/qemu-virgl-kosmickrisp
+brew tap mikeeq/qemu-virgl-kosmickrisp
 
 # Install and build from source
-brew install --build-from-source startergo/qemu-virgl-kosmickrisp/qemu
+brew install --build-from-source mikeeq/qemu-virgl-kosmickrisp/qemu
 
 # Or use the shorthand
-brew install -s startergo/qemu-virgl-kosmickrisp/qemu
+brew install -s mikeeq/qemu-virgl-kosmickrisp/qemu
 ```
 
 **Build from source notes:**
@@ -51,7 +53,7 @@ If the build fails, you can inspect the build logs:
 ```bash
 # Show build logs
 brew config
-brew install --verbose --build-from-source startergo/qemu-virgl-kosmickrisp/qemu
+brew install --verbose --build-from-source mikeeq/qemu-virgl-kosmickrisp/qemu
 
 # Or access logs after failed build
 cat ~/Library/Logs/Homebrew/qemu/*.log
@@ -116,6 +118,26 @@ Should report virtio-gpu device powered by host's KosmicKrisp.
 
 Note: The KosmicKrisp driver (ICD file + dylib) is bundled with QEMU. No separate Vulkan SDK installation is required.
 
+### Networking (rootless)
+
+This fork compiles QEMU with **libslirp**, so user-mode networking works without
+root:
+
+```bash
+qemu-system-aarch64 \
+  -device virtio-net-pci,netdev=net0 \
+  -netdev user,id=net0,hostfwd=tcp::2222-:22 \
+  ...
+```
+
+The guest gets a NAT address (`10.0.2.15`, gateway `10.0.2.2`, DNS `10.0.2.3`)
+and you can reach it from the host via the forwarded port
+(`ssh -p 2222 <user>@localhost`).
+
+> A real LAN IP (bridged) requires the `vmnet-bridged` backend, which needs
+> **root** on macOS and cannot bridge over Wi-Fi. User-mode NAT is the only
+> rootless option.
+
 ## What's Included
 
 - **QEMU system binaries**: qemu-system-x86_64, qemu-system-aarch64, qemu-system-i386
@@ -144,6 +166,55 @@ This tap applies the following patches to upstream QEMU:
 These patches enable:
 - `-display cocoa,gl=core` - OpenGL Core profile via OpenGL.framework
 - `-display cocoa,gl=es` - OpenGL ES via ANGLE with Metal backend
+
+## Development
+
+This repo uses [pre-commit](https://pre-commit.com/) to validate changes to the
+formula and the CI workflow.
+
+```bash
+# Install pre-commit (pick one)
+brew install pre-commit
+pipx install pre-commit
+
+# Enable the git hook and run against everything
+pre-commit install
+pre-commit run --all-files
+```
+
+Hooks run:
+- generic hygiene (trailing whitespace, EOF, merge markers, LF endings, large files, YAML parse)
+- `actionlint` - lints `.github/workflows/*.yml` (and shellchecks inline `run:` scripts)
+- `shellcheck` - lints standalone shell scripts (e.g. [scripts/build.sh](scripts/build.sh))
+- `yamllint` - YAML style (see [.yamllint.yml](.yamllint.yml))
+- `brew style` + `ruby -c` - Homebrew formula lint and syntax check
+
+### Building locally
+
+To build from this checkout instead of CI, use [scripts/build.sh](scripts/build.sh).
+It links this working copy as a local tap and builds the formula:
+
+```bash
+scripts/build.sh                 # build from source and install
+BOTTLE=1 scripts/build.sh        # build a redistributable bottle
+SIGN=1 scripts/build.sh          # also re-sign + add the HVF entitlement
+```
+
+Behind a corporate TLS proxy, point it at your root CA (it wires the cert into
+Homebrew's curl, pip, git and meson):
+
+```bash
+SRC_CERT=/path/to/ca.pem scripts/build.sh
+```
+
+### Building bottles on CI
+
+Bottles are built by [.github/workflows/bottle.yml](.github/workflows/bottle.yml)
+on GitHub-hosted macOS runners (which have clean internet, avoiding local
+corporate-proxy TLS issues). Trigger a release build manually from the Actions
+tab (**Build Bottles > Run workflow**, `release: true`), or wait for the weekly
+schedule. The workflow is fork-agnostic - it derives the owner/repo from
+`github.repository`, so no hardcoded account names need editing.
 
 ## License
 
