@@ -75,11 +75,44 @@ re-init robustness tweak.
 
 ---
 
-## 3. Rebasing onto QEMU stable (v11.1.1)
+## 3. Upstream pinning strategy
 
 Historically the formula tracked upstream **`master`**, so the patches broke
-whenever `master` drifted (that is the CI failure that prompted this work). The
-plan is to pin to the **latest stable release** and carry rebased patches.
+whenever `master` drifted (that is the CI failure that prompted this work).
+
+**Current approach: pin to the exact working commit.** `Formula/qemu.rb`
+downloads a fixed upstream commit:
+
+```
+cf3e71d8fc8ba681266759bb6cb2e45a45983e3e   (QEMU master, 2026-01-13)
+```
+
+This is the commit the downstream patches were authored against and the one
+`startergo`'s last known-good bottle (v1.0.27, Jan 2026) was built from. The
+original patches apply to it with **zero rejects**, so no rebase is needed.
+
+### Why not a release tag?
+
+No QEMU **release tag** is compatible with the *original* patches. `cf3e71d8`
+sits between v10.2 (Dec 2025) and v11.0 (Apr 2026), and the patches reject on
+every release we tested (original `qemu-texture-borrowing.patch`):
+
+| Ref | texture-borrowing result |
+| --- | --- |
+| `cf3e71d8` (pinned) | applies clean (0 rejects) |
+| v10.2.0 / v10.2.4 | reject: audio.c, coreaudio.m, sdl2.h, cocoa.m |
+| v11.0.0 | reject: audio.c (3/3), coreaudio.m (24/24), sdl2.h (1/3), cocoa.m (2/33) |
+| v11.0.4 | rejects (more than v11.0.0) |
+| v11.1.1 | reject: 8 files / 37 hunks (adds the `dpy_gl_*`→`qemu_console_gl_*` rename) |
+
+Pinning to the commit keeps the build reproducible and lets us use the original
+patches unmodified. Moving to a release **requires rebasing the patches** (see
+below), which for v11.1.1 also means dropping audio (the QOM `AudioBackend`
+rewrite) and reworking `ui/cocoa.m` for the new DCL-registration API.
+
+## 3b. (Optional) Rebasing onto a QEMU stable release
+
+If you later want a release instead of a pinned commit, rebase the patches.
 
 ### Method — git 3-way (do NOT hand-edit `.rej` files)
 
