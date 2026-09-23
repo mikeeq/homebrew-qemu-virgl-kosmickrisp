@@ -1,6 +1,8 @@
---- a/ui/cocoa.m	2026-01-13 20:17:13
-+++ b/ui/cocoa.m	2026-01-13 20:16:42
-@@ -2328,6 +2328,8 @@ static void cocoa_gl_render(void)
+diff --git a/ui/cocoa.m b/ui/cocoa.m
+index 232ff664..b32cd403 100644
+--- a/ui/cocoa.m
++++ b/ui/cocoa.m
+@@ -2326,6 +2326,8 @@ static void cocoa_gl_render(void)
      if (cocoa_gl_trace_enabled()) {
          glFlush();
          cocoa_gl_log_error("render end");
@@ -8,12 +10,12 @@
 +    gl_dirty = false;
      }
  }
-
-@@ -2336,7 +2338,6 @@ static void cocoa_gl_refresh(DisplayChangeListener *dcl)
+ 
+@@ -2334,7 +2336,6 @@ static void cocoa_gl_refresh(DisplayChangeListener *dcl)
      cocoa_refresh(dcl);
-
+ 
      if (gl_dirty) {
 -        gl_dirty = false;
-
+ 
          if (cocoa_gl_trace_enabled()) {
              cocoa_gl_log("refresh: triggering render dirty scanout=%d egl_surface=%d",

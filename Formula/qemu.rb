@@ -47,9 +47,11 @@ class Qemu < Formula
     # Install pyyaml for meson
     system "python3", "-m", "pip", "install", "--break-system-packages", "pyyaml"
 
-    # Download upstream QEMU source from GitLab master
-    upstream_url = "https://gitlab.com/qemu-project/qemu/-/archive/master/qemu-master.tar.gz"
-    ohai "Downloading upstream QEMU from #{upstream_url}"
+    # Download upstream QEMU stable release. The downstream patches are rebased
+    # against this exact tag (see docs/PATCHES.md); do not switch to master.
+    qemu_version = "v11.1.1"
+    upstream_url = "https://gitlab.com/qemu-project/qemu/-/archive/#{qemu_version}/qemu-#{qemu_version}.tar.gz"
+    ohai "Downloading upstream QEMU #{qemu_version} from #{upstream_url}"
     system "curl", "-L", upstream_url, "-o", "qemu.tar.gz"
     system "tar", "-xzf", "qemu.tar.gz", "--strip-components=1"
 
