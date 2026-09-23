@@ -1,9 +1,9 @@
-# QEMU downstream patches & upstream-rebase notes
+# QEMU downstream patches & upstream-pinning notes
 
 This tap builds QEMU from source and applies a small set of downstream patches
 on top of upstream QEMU. This document explains **what each patch does**, **why
-the audio changes existed**, and the **status/'how-to' of rebasing onto the
-latest QEMU stable release (v11.1.1)**.
+the audio changes existed**, **which upstream commit we pin to and why no release
+tag works**, and **how to rebase onto a stable release** if that changes.
 
 ---
 
@@ -148,20 +148,20 @@ git format-patch v11.1.1..work -o /tmp/out      # 2 patches
 # from .../archive/master/qemu-master.tar.gz to the v11.1.1 archive, and bump version.
 ```
 
-### Status of the current rebase attempt
+### Status: v11.1.1 rebase (explored, then reverted)
 
-Base commit the patches were written for: `cf3e71d8` (a QEMU master snapshot,
-~Jan 2026). Every upstream `startergo` release also pinned to this commit.
+A full v11.1.1 rebase was prototyped and then **reverted** in favour of pinning to
+`cf3e71d8` (§3). It is documented here in case a release move is revisited.
 
 - `gpu-spike-resolution-fix.patch` — **applies cleanly** to v11.1.1.
 - `qemu-texture-borrowing.patch` — 8 files conflicted:
   - **Resolved cleanly (display/GPU):** `include/ui/console.h`, `ui/console.c`,
     `include/ui/sdl2.h`, `ui/egl-helpers.c`, `hw/display/virtio-gpu-virgl.c`.
   - **Dropped:** `audio/audio.c`, `audio/coreaudio.m` (see §2).
-  - **Still to finish:** `ui/cocoa.m` (see §4).
+  - **`ui/cocoa.m`:** resolved (DCL-registration rework), but never compile-verified.
 
-> The rebase lives in the throwaway `/tmp/qemu-rebase`. Nothing in this repo has
-> been modified yet — the patches here are still the originals.
+> The current formula uses the original, unmodified patches against the pinned
+> commit — no rebase is applied in this repo.
 
 ### Upstream API changes encountered (reference for the resolver)
 
